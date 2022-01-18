@@ -5,7 +5,7 @@ const User = require("../models/userModel")
 
 exports.isAuthenticated = catchAsyncErrors(async(req,res,next)=>{
     const {token}  = req.cookies
-  console.log(token)
+  // console.log(token)
   
 
   if (!token) {
@@ -19,3 +19,17 @@ exports.isAuthenticated = catchAsyncErrors(async(req,res,next)=>{
   next();
 
 })
+
+exports.authorizeRoles = (...roles)=>{
+  return (req, res, next)=>{
+    if(!roles.includes(req.user.role)){
+      // console.log("next () before not admin")
+      return next( new ErrorHander(`Role: ${req.user.role} is not allowed to access this resource`, 403))
+      // console.log("next () after not admin")
+    }
+    next()
+    // console.log("next () after admin")
+  }
+
+
+}

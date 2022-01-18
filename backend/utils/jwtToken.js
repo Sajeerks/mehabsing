@@ -3,6 +3,7 @@ const sentToken= (user, statusCode, res)=>{
     //creatting a cookie and storing token
     const token = user.getJWTToken();
     
+    
     //option in cookie
     const options = {
         expires: new Date(

@@ -51,7 +51,9 @@ async(req, res, next)=>{
 
 // Get all product
 
-exports.getAllProducts = catchAsyncErrors(async (req, res)=>{
+exports.getAllProducts = catchAsyncErrors(async (req, res, next)=>{
+
+// return next(new ErrorHander(" this is my temp error",500))
 
  const resultsPerPage = 8
  const productCount = await Product.countDocuments()

@@ -11,7 +11,6 @@ const crypto  = require("crypto")
 exports.registerUser = catchAsyncErrors(async(req, res, next)=>{
 
     const {name,email, password} = req.body
-
     const user = await User.create({
         name,email, password,
         avatar:{
@@ -19,15 +18,11 @@ exports.registerUser = catchAsyncErrors(async(req, res, next)=>{
             url:"profilePic url"
         }
     })
-
     const token = user.getJWTToken()
-    
     sentToken(user, 201, res)
- 
-    
-}
+})
 
-)
+
 exports.loginUser = catchAsyncErrors(async(req, res, next)=>{
     const {email, password} = req.body
    if(!email || !password){
@@ -52,13 +47,10 @@ sentToken(user, 200, res)
 
 //Logout user
 exports.logout = catchAsyncErrors(async(req, res, next)=>{
-
     res.cookie("token", null, {
         expires: new Date(Date.now()),
         httpOnly: true,
       });
-
-
 res.status(200).json({
     succes:true, 
     message: "Logout Succesfull"
@@ -90,16 +82,12 @@ exports.forgotPassword = catchAsyncErrors(async (req, res, next)=>{
           email: user.email, 
            subject:`Ecommerce  passwword Recovery`, 
            message ,
-
-
        })
        res.status(200).json({
            sucess:true,
            message:`Email send to ${user.email} successfully`
        })    
-    
-
-    } catch (error) {
+        } catch (error) {
         user.resetPasswordToken= undefined
         user.resetPasswordExpire =undefined
         await user.save({validateBeforeSave:false})

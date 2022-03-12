@@ -1,11 +1,12 @@
 import React, { Fragment, useEffect } from 'react';
 import './home.css'
-import Product from './Product.js'
+import ProductCard from './ProductCard.js'
 import MetaData from '../layout/MetaData';
-import { getProduct } from '../../actions/productAction';
+import { clearErrors, getProduct } from '../../actions/productAction';
 import {useSelector, useDispatch} from 'react-redux'
 import Loader from '../layout/loader/Loader';
 import { useAlert } from 'react-alert';
+import { Link } from 'react-router-dom';
 
 // const product ={name:"Blue Tshirt", 
 // images:[{url:"https://m.media-amazon.com/images/I/81RnU-hjDaL._AC_SY550_.jpg"}], 
@@ -18,7 +19,8 @@ const Home = () => {
 const dispatch =useDispatch()
 useEffect(()=>{
     if(error){
-        return alert.error(error)
+        alert.error(error)
+        dispatch(clearErrors())
     }
 dispatch(getProduct())
 },[dispatch,error, alert])
@@ -42,13 +44,13 @@ dispatch(getProduct())
             <div className="container" id="container">
               
             {   products && products.map((product)=>(
-                      <Product  key ={product._id}product ={product}/>
+                      <ProductCard  key ={product._id}product ={product}/>
                 ))
         }
 
             </div>
 
-
+  
   </Fragment>)}
       </Fragment>
   )

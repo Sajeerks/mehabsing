@@ -4,14 +4,17 @@ class ApiFeatures {
         this.queryStr = queryStr
     }
 
+ 
+
     search(){
         const keyword = this.queryStr.keyword?{
             name:{
                 $regex: this.queryStr.keyword,
                 $options: "i",
-            }
+            },
+       
         }:{}
-        console.log("keyword :",keyword)
+       //console.log("keyword :",keyword)
 
     this.query = this.query.find({...keyword})
     return this
@@ -29,9 +32,9 @@ filter(){
     // filter for price and rating
     let queryStr = JSON.stringify(queryCopy)
     queryStr = queryStr.replace(/\b(gt|gte|lt|lte)\b/g, (key) => `$${key}`);
- console.log("queryStr",queryStr)
+ //console.log("queryStr",queryStr)
     this.query = this.query.find(JSON.parse(queryStr));
-    console.log(" this.query in the find function ", this.query)
+    // console.log(" this.query in the find function ", this.query)
     return this
 }
  

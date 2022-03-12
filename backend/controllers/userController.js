@@ -5,17 +5,23 @@ const User = require("../models/userModel");
 const sentToken = require("../utils/jwtToken");
 const sendEmail = require("../utils/sendEmail.js")
 const crypto  = require("crypto")
-
+const cloudinary = require("cloudinary")
 
 
 exports.registerUser = catchAsyncErrors(async(req, res, next)=>{
+
+    const myCloud = await cloudinary.v2.uploader.upload(req.body.avatar,{
+        folder:"avatar",
+        width:150,
+        crop:"scale",
+    })
 
     const {name,email, password} = req.body
     const user = await User.create({
         name,email, password,
         avatar:{
-            public_id:"this is our sample id", 
-            url:"profilePic url"
+            public_id:myCloud.public_id, 
+            url:myCloud.secure_url,
         }
     })
     const token = user.getJWTToken()
@@ -61,8 +67,9 @@ res.status(200).json({
 
 // forgot password
 exports.forgotPassword = catchAsyncErrors(async (req, res, next)=>{
+    console.log("req.body=:", req.body)
     const user = await (User.findOne({email:req.body.email}))
-    
+     
     if(!user){
         return next( new ErrorHander ("User  not found", 404))
     }
@@ -71,9 +78,10 @@ exports.forgotPassword = catchAsyncErrors(async (req, res, next)=>{
     const resetToken = user.getResetPasswordToken()
     await user.save({validateBeforeSave:false})
 
-    const resetPasswordUrl = `${req.protocol}://${req.get("host")}/api/v1/password/reset/${resetToken}`
+   const resetPasswordUrl = `${req.protocol}://${req.get("host")}/api/v1/password/reset/${resetToken}`
+    //const resetPasswordUrl = `${process.env.FRONTEND_URL}/password/reset/${resetToken}`
 
-    const message = `your password reset token is ${resetPasswordUrl} \n\n if you have not requested this email 
+    const message = `your password reset token is temp  ${resetPasswordUrl} \n\n if you have not requested this email 
     please ignore this `
 
     try {
@@ -98,7 +106,7 @@ exports.forgotPassword = catchAsyncErrors(async (req, res, next)=>{
 
 
 exports.resetPassword = catchAsyncErrors(async (req, res, next)=>{
-
+     console.log("req.body in reset password===:", req.body)
     // creating token hash
     const resetPasswordToken = crypto.createHash("sha256").update(req.params.token).digest("hex")
     
@@ -118,6 +126,10 @@ user.resetPasswordExpire =undefined
 user.save()
 sentToken(user, 200, res)
 })
+
+
+
+
 
 exports.getUserDetails = catchAsyncErrors( async(req, res, next)=>{
     const user = await User.findById(req.user.id)
@@ -154,12 +166,45 @@ exports.updatePassword = catchAsyncErrors( async(req, res, next)=>{
 //update Profile page 
 exports.updateProfile = catchAsyncErrors( async(req, res, next)=>{
     
-
+    //   console.log("req.body   :", req.body)
     const newUserData ={
         name:req.body.name, 
         email:req.body.email,
-       
+      
     }
+    // console.log("newUserData  bedore if  ---: ", newUserData)
+    if(req.body.avatar !== ""){
+        const user = await User.findById(req.user.id)
+        const imageId = user.avatar.public_id
+     
+        await cloudinary.v2.uploader.destroy(imageId)
+     
+         
+        const myCloud = await cloudinary.v2.uploader.upload(req.body.avatar,{
+            folder:"avatar",
+            width:150,
+            crop:"scale",
+        })
+         
+         newUserData.avatar ={
+             public_id:myCloud.public_id,
+             url:myCloud.secure_url
+         }
+
+    }
+    
+    if(req.body.avatar==="" ){
+        // console.log("newUserData  INSIDE ELESE      ---: ", newUserData)
+        const user = await User.findById(req.user.id)
+        newUserData.avatar ={
+            public_id:user.avatar.public_id,
+            url:user.avatar.url
+        }
+
+    }
+
+
+    // console.log("newUserData  AFTER IF     ---: ", newUserData)
   //we will add clodinary later
   const user = await User.findByIdAndUpdate(req.user.id, newUserData, {
       new:true, 
@@ -210,13 +255,14 @@ if(!user){
 
   //update user role  -- Admin
   exports.updateRole = catchAsyncErrors( async(req, res, next)=>{
-    
+      console.log("req.body in update role  " , req.body)
 
     const newUserData ={
         name:req.body.name, 
         email:req.body.email,
        role:req.body.role
     }
+    console.log("new user data aat updateRole  ::" , newUserData)
   //we will add clodinary later
   const user = await User.findByIdAndUpdate(req.params.id, newUserData, {
       new:true, 
@@ -239,6 +285,11 @@ exports.deleteUser = catchAsyncErrors( async(req, res, next)=>{
      return next(new ErrorHander(`user does not exist with ${req.params.id}`, 400))
  }
 
+ const imageId = user.avatar.public_id
+     
+ await cloudinary.v2.uploader.destroy(imageId)
+
+ 
 await user.remove()
     
 res.status(200).json({

@@ -8,7 +8,12 @@ const ApiFeatures = require("../utils/apiFeatures");
 //create new order
 exports.newOrder = catchAsyncErrors(async(req,res, next)=>{
     const {shippingInfo, 
-        orderItems, paymentInfo,itemsPrice, taxPrice, shippingPrice, totalPrice
+        orderItems, 
+        paymentInfo,
+        itemsPrice, 
+        taxPrice, 
+        shippingPrice, 
+        totalPrice
     } = req.body
     console.log("req.body :", req.body)
 console.log("shippingInfo :",shippingInfo)
@@ -45,7 +50,7 @@ exports.getSingleOrder = catchAsyncErrors(async(req,res, next)=>{
 exports.myOrders = catchAsyncErrors(async(req,res, next)=>{
 
     const orders = await Order.find({user:req.user._id})
-  
+   // console.log("ordersin backend myOrders" , orders)
     res.status(200).json({
         success:true, 
         orders
@@ -61,6 +66,7 @@ exports.getAllOrders = catchAsyncErrors(async(req,res, next)=>{
     orders.forEach(order=>{
         totalAmount += order.totalPrice
     })
+  //  console.log("ordersin backend get all ordders" , orders)
     res.status(200).json({
         success:true, 
         totalAmount,
@@ -70,8 +76,10 @@ exports.getAllOrders = catchAsyncErrors(async(req,res, next)=>{
 
 //UPDATE order status ADMIN
 exports.updateOrder = catchAsyncErrors(async(req,res, next)=>{
+         console.log("req.boy din update oredr",req.body)
 
     const order = await Order.findById(req.params.id);
+    console.log("order in update order :",order)
     
     if(!order){
         return next(new ErrorHander("Order not found with this id", 404))
@@ -82,10 +90,14 @@ exports.updateOrder = catchAsyncErrors(async(req,res, next)=>{
     }
     // console.log("order :",order)
 
-   order.orderItems.forEach(async (o)=>{
+
+    if(req.body.status === "shipped"){
+          order.orderItems.forEach(async (o)=>{
         await updateStock(o.product, o.quantity)
    })
 
+    }
+ 
  order.orderStatus = req.body.status
 
  if(req.body.status === "Delivered"){
@@ -104,12 +116,18 @@ await order.save({validateBeforeSave :false})
 
 async function updateStock(id, quantity) {
     const product = await Product.findById(id);
-        // console.log("product :", product)
-        // console.log("  product.Stock before update:",   product.stock)
+      //  console.log("product :", product)
+       
+        if(!product){
+            console.log("product with id not found:", id)
+            return 
+        }
+   console.log("  product.Stock before update:",   product.stock)
     product.stock -= quantity;
-    // console.log("  product.Stock after update:",   product.stock)
+    console.log("  product.Stock after update:",   product.stock)
     await product.save({ validateBeforeSave: false });
   }
+
 
 
 
@@ -130,3 +148,4 @@ exports.deleteOrder = catchAsyncErrors(async(req,res, next)=>{
     
     })
 })
+

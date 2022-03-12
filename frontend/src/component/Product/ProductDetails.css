@@ -23,7 +23,11 @@
   }
   
   .CarouselImage {
+    /* width: 100%;  */
+    /* height: 100%; */
     width: 20vmax;
+ 
+ 
   }
   
   .detailsBlock-1 > h2 {
@@ -165,6 +169,7 @@
   .reviews {
     display: flex;
     overflow: auto;
+   
   }
   
   .reviewCard {

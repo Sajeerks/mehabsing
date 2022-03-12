@@ -1,0 +1,11 @@
+.reviewCard{
+
+    word-break: break-all;
+
+
+
+}
+
+.reviewCardComment{
+    overflow-wrap: break-word; 
+}
